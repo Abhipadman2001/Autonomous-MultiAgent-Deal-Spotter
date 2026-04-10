@@ -13,11 +13,6 @@ sys.setrecursionlimit(3000)
 # 0. SETUP & ENVIRONMENT
 # ==============================================================================
 
-# --- API KEYS ---
-# 🔑 GET FREE KEY: https://tavily.com/
-os.environ["TAVILY_API_KEY"] = ""  # <--- ENTER YOUR KEY HERE
-
-
 # --- COMPATIBILITY PATCH FOR NOTEBOOKS/GRADIO ---
 try:
     if hasattr(sys.stdout, 'write') and not hasattr(sys.stdout, 'buffer'):
@@ -36,7 +31,6 @@ except Exception:
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
-# Filter out LangChain deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="langchain") 
 
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
@@ -52,11 +46,21 @@ def check_library(lib_name, pip_name):
         print(f"   Please run: pip install {pip_name}")
         sys.exit(1)
 
+check_library("dotenv", "python-dotenv") # Added python-dotenv
 check_library("duckduckgo_search", "duckduckgo-search") # Keeping as backup
 check_library("chromadb", "chromadb")
 check_library("langchain_community", "langchain-community")
 check_library("crewai_tools", "crewai-tools")
 check_library("tavily", "tavily-python") 
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# Verify TAVILY_API_KEY is loaded
+if not os.environ.get("TAVILY_API_KEY") or os.environ.get("TAVILY_API_KEY") == "your_actual_api_key_here":
+    print("⚠️ WARNING: TAVILY_API_KEY is missing or invalid in your .env file!")
+    print("Please add your key to the .env file before running.")
 
 import chromadb
 from chromadb.utils import embedding_functions
@@ -65,13 +69,13 @@ from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from typing import Type
-from tavily import TavilyClient # Direct import to avoid LangChain deprecation
+from tavily import TavilyClient
 
 # ==============================================================================
 # 1. DATABASE SETUP (CHROMA + OLLAMA)
 # ==============================================================================
 
-OLLAMA_URL = "http://127.0.0.1:11434"
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 MODEL_NAME = "llama3.2"
 EMBED_MODEL = "nomic-embed-text"
 COLLECTION_NAME = "shopping_knowledge_base"
@@ -150,15 +154,14 @@ class WebSearchTool(BaseTool):
     
     def _run(self, query: str) -> str:
         api_key = os.environ.get("TAVILY_API_KEY")
-        if not api_key or "YOUR_KEY_HERE" in api_key:
-            return "❌ Error: TAVILY_API_KEY not found. Please set it in the code."
+        if not api_key or "your_actual_api_key_here" in api_key:
+            return "❌ Error: TAVILY_API_KEY not found or is invalid. Please set it in the .env file."
             
         try:
             # We append 'buy online india' to ensure we get Indian results
             # but we DO NOT restrict domains, allowing any shop to appear.
             search_query = f"{query} price buy online india"
             
-            # Using TavilyClient directly instead of LangChain wrapper to avoid deprecation warnings
             client = TavilyClient(api_key=api_key)
             response = client.search(query=search_query, max_results=7)
             
@@ -299,11 +302,10 @@ def is_ollama_running():
         return False
 
 def run_deal_spotter(product_name, history):
-    # Base validations
     if not product_name: 
         return "⚠️ Please enter a product name.", history, history
     if not is_ollama_running(): 
-        return "❌ Ollama is not running! Check your app.", history, history
+        return "❌ Ollama is not running! Please start your Ollama server.", history, history
     
     status = f"### 🕵️‍♂️ Searching for: {product_name}...\n"
     
@@ -311,7 +313,6 @@ def run_deal_spotter(product_name, history):
         crew = create_crew(product_name)
         result = crew.kickoff()
         
-        # Add to history (Time, Product Name)
         timestamp = datetime.now().strftime("%I:%M %p")
         history.insert(0, [timestamp, product_name])
         
@@ -322,7 +323,6 @@ def run_deal_spotter(product_name, history):
         error_msg = f"Error: {e}\n{traceback.format_exc()}"
         return error_msg, history, history
 
-# Modern CSS with updates for side-by-side layout
 custom_css = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
@@ -336,7 +336,6 @@ button.primary-btn { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100
 button.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3); background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%); }
 .output-markdown { border: 1px solid #e5e7eb; padding: 25px; border-radius: 12px; background: #f9fafb; margin-top: 25px; min-height: 150px; }
 .footer-text { text-align: center; margin-top: 20px; font-size: 0.85em; color: #9ca3af; }
-/* Sidebar styling */
 .history-sidebar { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: 100%; }
 .history-title { font-size: 1.1em; font-weight: 600; color: #334155; margin-bottom: 15px; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; }
 </style>
@@ -348,11 +347,9 @@ with gr.Blocks(title="AI Deal Spotter Pro") as demo:
     gr.Markdown("# 🛍️ AI Deal Spotter Pro", elem_id="header-title")
     gr.Markdown("Live Verified Prices from ANY Indian Retailer", elem_classes=["description"])
     
-    # Create a state object to hold the list of searched items globally for the session
     history_state = gr.State([])
 
     with gr.Row():
-        # Main UI Column (Left Side)
         with gr.Column(scale=7):
             with gr.Row(equal_height=True):
                 inp = gr.Textbox(label="Product Name", placeholder="e.g. iPhone 15, Sony XM5...", scale=4, elem_classes=["input-box"], show_label=False, container=False)
@@ -360,11 +357,9 @@ with gr.Blocks(title="AI Deal Spotter Pro") as demo:
             
             out = gr.Markdown(label="Deal Analysis Result", elem_classes=["output-markdown"], value="Ready to search! Enter a product above.")
             
-        # History Column (Right Side)
         with gr.Column(scale=3, elem_classes=["history-sidebar"]):
             gr.Markdown("🕒 **Recent Searches**", elem_classes=["history-title"])
             
-            # Dataframe to display the history table neatly
             history_table = gr.Dataframe(
                 headers=["Time", "Product"], 
                 datatype=["str", "str"],
@@ -375,9 +370,8 @@ with gr.Blocks(title="AI Deal Spotter Pro") as demo:
 
     gr.Markdown("Powered by CrewAI, Ollama & Tavily", elem_classes=["footer-text"])
 
-    # Link the inputs and outputs, ensuring history state is passed back and forth
     btn.click(fn=run_deal_spotter, inputs=[inp, history_state], outputs=[out, history_state, history_table])
     inp.submit(fn=run_deal_spotter, inputs=[inp, history_state], outputs=[out, history_state, history_table])
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(),
