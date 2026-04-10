@@ -323,6 +323,7 @@ def run_deal_spotter(product_name, history):
         error_msg = f"Error: {e}\n{traceback.format_exc()}"
         return error_msg, history, history
 
+# Changed colors here to bright blue and added !important to override Gradio defaults
 custom_css = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
@@ -331,9 +332,9 @@ body { font-family: 'Roboto', sans-serif !important; background-color: #f3f4f6; 
 #header-title { text-align: center; color: #111827; margin-bottom: 8px; font-size: 2.2em; font-weight: 700; }
 .description { text-align: center; color: #6b7280; margin-bottom: 30px; font-size: 1.1em; }
 .input-box textarea, .input-box input { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; font-size: 16px; }
-.input-box textarea:focus, .input-box input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-button.primary-btn { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; color: white !important; font-weight: 600; font-size: 16px; border-radius: 8px; padding: 12px 24px; transition: transform 0.1s ease, box-shadow 0.2s ease; cursor: pointer; }
-button.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3); background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+.input-box textarea:focus, .input-box input:focus { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important; }
+button.primary-btn { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; border: none !important; color: white !important; font-weight: 600; font-size: 16px; border-radius: 8px; padding: 12px 24px; transition: transform 0.1s ease, box-shadow 0.2s ease; cursor: pointer; }
+button.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3) !important; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; }
 .output-markdown { border: 1px solid #e5e7eb; padding: 25px; border-radius: 12px; background: #f9fafb; margin-top: 25px; min-height: 150px; }
 .footer-text { text-align: center; margin-top: 20px; font-size: 0.85em; color: #9ca3af; }
 .history-sidebar { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: 100%; }
@@ -374,4 +375,4 @@ with gr.Blocks(title="AI Deal Spotter Pro") as demo:
     inp.submit(fn=run_deal_spotter, inputs=[inp, history_state], outputs=[out, history_state, history_table])
 
 if __name__ == "__main__":
-    demo.launch(),
+    demo.launch()
