@@ -345,7 +345,7 @@ with gr.Blocks(title="AI Deal Spotter") as demo:
     gr.HTML(custom_css)
     
     gr.Markdown("# 🛍️ AI Deal Spotter ", elem_id="header-title")
-    gr.Markdown("Live Verified Prices from ANY Indian Retailer", elem_classes=["description"])
+    gr.Markdown("Real Product Prices from ANY Online Retailer Websites", elem_classes=["description"])
     
     history_state = gr.State([])
 
