@@ -1,4 +1,4 @@
-# 🛍️ AI Deal Spotter Pro
+# 🛍️ AI Deal Spotter 
 
 An autonomous multi-agent system that scouts the internet for the best shopping deals across Indian retailers using AI agents.
 
