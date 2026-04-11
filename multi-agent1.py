@@ -341,10 +341,10 @@ button.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px r
 </style>
 """
 
-with gr.Blocks(title="AI Deal Spotter Pro") as demo:
+with gr.Blocks(title="AI Deal Spotter") as demo:
     gr.HTML(custom_css)
     
-    gr.Markdown("# 🛍️ AI Deal Spotter Pro", elem_id="header-title")
+    gr.Markdown("# 🛍️ AI Deal Spotter ", elem_id="header-title")
     gr.Markdown("Live Verified Prices from ANY Indian Retailer", elem_classes=["description"])
     
     history_state = gr.State([])
