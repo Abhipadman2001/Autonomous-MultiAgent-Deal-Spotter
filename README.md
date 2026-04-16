@@ -4,7 +4,7 @@ An autonomous multi-agent system that scouts the internet for the best shopping 
 
 ## 🚀 Features
 - **Multi-Agent Architecture**: Uses **CrewAI** to manage specialized agents (Scout, Analyst, and Notifier).
-- **Local LLM**: Powered by **Ollama (Llama 3.2)** for private, local processing.
+- **Local LLM**: Powered by **Ollama (Llama 3.2)** for local processing.
 - **Smart Search**: Utilizes **Tavily AI** to find live prices across various Indian stores (Croma, Reliance, etc.).
 - **Knowledge Base**: Uses **ChromaDB** to store and compare target prices.
 - **Modern UI**: Built with **Gradio** for an easy-to-use web interface.
